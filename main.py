@@ -1,7 +1,7 @@
-import streamlit as st, pandas as pd, plotly.express as px
+import streamlit as st, pandas as pd
 
-st.set_page_config(page_title="TVL Chains", layout="wide")
-st.title("💰 Chaînes : TVL & Volume 24h")
+st.set_page_config(page_title="Données CSV", layout="wide")
+st.title("📊 Aperçu de ton CSV")
 
 CSV_URL = "https://docs.google.com/spreadsheets/d/1RLRjn6uya9zApbGMLBWmTPn2YL8T-_-FJTLiQD2GPwU/export?format=csv&gid=1167946643"
 
@@ -11,21 +11,8 @@ def load_data():
 
 df = load_data()
 
-chaines = st.sidebar.multiselect("Choisis une ou plusieurs chaînes", df["Chaîne"].unique(), default=df["Chaîne"].unique())
-df_filtre = df[df["Chaîne"].isin(chaines)]
+st.subheader("Colonnes trouvées")
+st.write(df.columns.tolist())
 
-st.dataframe(df_filtre, use_container_width=True)
-
-fig_tvl = px.bar(df_filtre, x="Chaîne", y="TVL", title="TVL par chaîne")
-st.plotly_chart(fig_tvl, use_container_width=True)
-
-fig_vol = px.bar(df_filtre, x="Chaîne", y="Volume 24h", title="Volume 24h par chaîne")
-st.plotly_chart(fig_vol, use_container_width=True)
-
-col1, col2, col3 = st.columns(3)
-with col1:
-    st.metric("TVL Total", f"{df_filtre['TVL'].sum():,.0f}")
-with col2:
-    st.metric("Volume Total", f"{df_filtre['Volume 24h'].sum():,.0f}")
-with col3:
-    st.metric("Nb chaînes", len(df_filtre))
+st.subheader("Contenu brut")
+st.dataframe(df, use_container_width=True)
