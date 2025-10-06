@@ -66,12 +66,13 @@ color_map = {
 
 # --- Config Streamlit ---
 st.set_page_config(page_title="TVL Chains Dashboard", layout="wide")
+
+# --- Fond sombre page ---
 st.markdown(
     """
     <style>
     .main {background-color: #1E1E1E; color: #FFFFFF;}
     .stMarkdown p {color: #FFFFFF;}
-    .stDataFrame div{background-color: #1E1E1E;}
     </style>
     """, unsafe_allow_html=True
 )
@@ -96,20 +97,51 @@ df_filtered = df[df['Thème'].isin(selected_theme)]
 col_kpi1, col_kpi2 = st.columns(2)
 with col_kpi1:
     total_volume = df_filtered['Volume 24h'].sum()
-    st.metric("Volume total 24h", f"{total_volume:,}")
+    st.metric("Volume total 24h", f"{int(total_volume):,}")
 with col_kpi2:
     num_categories = len(df_filtered)
     st.metric("Nombre de catégories affichées", num_categories)
 
-# --- Layout : tableau + graphique ---
+# --- Préparer les données pour le style ---
+df_filtered_display = df_filtered.copy()
+
+# Colonnes numériques : supprimer les 0 inutiles
+num_cols = ['Volume 24h', 'Nombre de monnaies', 'Ratio V/Nbr']
+for col in num_cols:
+    if col in df_filtered_display.columns:
+        df_filtered_display[col] = df_filtered_display[col].fillna(0).apply(
+            lambda x: int(x) if float(x).is_integer() else round(x, 2)
+        )
+
+# --- Style par thème ---
+def color_theme(val):
+    return f"background-color: {color_map.get(val, '#FFFFFF')}; color: black;"
+
+# --- Style pour colonne évolution ---
+def color_evolution(val):
+    try:
+        val = float(val)
+        if val > 0:
+            return 'background-color: #00FF00; color: black;'
+        elif val < 0:
+            return 'background-color: #FF0000; color: white;'
+        else:
+            return 'background-color: #D3D3D3; color: black;'
+    except:
+        return ''
+
+# --- Layout tableau + graphique ---
 col1, col2 = st.columns([1, 2])
 
 with col1:
     st.subheader("Tableau des catégories")
-    # Coloration des cellules selon le thème
-    def color_theme(val):
-        return f"background-color: {color_map.get(val, '#333333')}; color: white;"
-    st.dataframe(df_filtered.style.applymap(color_theme, subset=['Thème']))
+    # Fond clair pour le tableau
+    st.dataframe(
+        df_filtered_display.style
+        .set_properties(**{'background-color': '#FFFFFF', 'color': 'black'})  # Fond clair + texte noir
+        .applymap(color_theme, subset=['Thème'])
+        .applymap(color_evolution, subset=['Évolution'])
+    )
 
 with col2:
     st.subheader("Graphique Volume 24h par catégorie")
