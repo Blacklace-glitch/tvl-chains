@@ -1,18 +1,15 @@
-import streamlit as st, pandas as pd
+import streamlit as st
+import pandas as pd
 
-st.set_page_config(page_title="Données CSV", layout="wide")
-st.title("📊 Aperçu de ton CSV")
-
-CSV_URL = "https://docs.google.com/spreadsheets/d/1RLRjn6uya9zApbGMLBWmTPn2YL8T-_-FJTLiQD2GPwU/export?format=csv&gid=1167946643"
-
+# Charger les données de la Google Sheet
 @st.cache_data
 def load_data():
+    CSV_URL = "https://docs.google.com/spreadsheets/d/1RLRjn6uya9zApbGMLBWmTPn2YL8T-_-FJTLiQD2GPwU/export?format=csv&gid=1167946643"
     return pd.read_csv(CSV_URL)
 
 df = load_data()
 
-st.subheader("Colonnes trouvées")
-st.write(df.columns.tolist())
+# Affichage dans Streamlit
+st.title("📊 TVL Chains Dashboard")
+st.dataframe(df)
 
-st.subheader("Contenu brut")
-st.dataframe(df, use_container_width=True)
