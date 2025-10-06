@@ -105,15 +105,41 @@ with col_kpi2:
     num_categories = len(df_filtered)
     st.metric("Nombre de catégories affichées", num_categories)
 
+# --- Préparer les données pour le style ---
+df_filtered_display = df_filtered.copy()
+
+# Colonnes numériques sans décimales
+for col in ['Volume 24h', 'Nombre de monnaies', 'Ratio V/Nbr']:
+    if col in df_filtered_display.columns:
+        df_filtered_display[col] = df_filtered_display[col].fillna(0).astype(int)
+
+# Fonction de coloration par thème
+def color_theme(val):
+    return f"background-color: {color_map.get(val, '#333333')}; color: white;"
+
+# Fonction de coloration pour la colonne évolution
+def color_evolution(val):
+    try:
+        val = float(val)
+        if val > 0:
+            return 'background-color: #00FF00; color: black;'   # vert
+        elif val < 0:
+            return 'background-color: #FF0000; color: white;'   # rouge
+        else:
+            return 'background-color: #D3D3D3; color: black;'   # gris
+    except:
+        return ''  # si vide ou non numérique
+
 # --- Layout : tableau + graphique ---
 col1, col2 = st.columns([1, 2])
 
 with col1:
     st.subheader("Tableau des catégories")
-    # Coloration des cellules selon le thème
-    def color_theme(val):
-        return f"background-color: {color_map.get(val, '#333333')}; color: white;"
-    st.dataframe(df_filtered.style.applymap(color_theme, subset=['Thème']))
+    st.dataframe(
+        df_filtered_display.style
+        .applymap(color_theme, subset=['Thème'])
+        .applymap(color_evolution, subset=['Évolution'])
+    )
 
 with col2:
     st.subheader("Graphique Volume 24h par catégorie")
