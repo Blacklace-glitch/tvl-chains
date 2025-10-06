@@ -101,11 +101,31 @@ if len(selected_theme) == 0:
 else:
     df_filtered = df[df['Thème'].isin(selected_theme)]
 
+# --- Fonction pour formater les grands nombres ---
+def format_large_number(x):
+    """Formate les grands nombres avec suffixes K, M, B"""
+    try:
+        x = float(x)
+        if abs(x) >= 1_000_000_000:
+            return f"{x/1_000_000_000:.1f}B"
+        elif abs(x) >= 1_000_000:
+            return f"{x/1_000_000:.1f}M"
+        elif abs(x) >= 1_000:
+            return f"{x/1_000:.1f}K"
+        else:
+            # Pour les nombres < 1000, on garde 2 décimales max
+            if x == int(x):
+                return str(int(x))
+            else:
+                return f"{x:.2f}"
+    except (ValueError, TypeError):
+        return x
+
 # --- KPIs ---
 col_kpi1, col_kpi2 = st.columns(2)
 with col_kpi1:
     total_volume = df_filtered['Volume 24h'].sum()
-    st.metric("Volume total 24h", f"{total_volume:,}")
+    st.metric("Volume total 24h", format_large_number(total_volume))
 with col_kpi2:
     num_categories = len(df_filtered)
     st.metric("Nombre de catégories affichées", num_categories)
@@ -127,9 +147,15 @@ def clean_numeric_value(val):
         return val
 
 # Appliquer le nettoyage aux colonnes numériques
-for col in ['Volume 24h', 'Nombre de monnaies', 'Ratio V/Nbr', 'Classement', 'Évolution']:
+for col in ['Nombre de monnaies', 'Ratio V/Nbr', 'Classement', 'Évolution']:
     if col in df_filtered_display.columns:
         df_filtered_display[col] = df_filtered_display[col].apply(clean_numeric_value)
+
+# Formater les colonnes Volume 24h et Ratio V/Nbr avec suffixes
+if 'Volume 24h' in df_filtered_display.columns:
+    df_filtered_display['Volume 24h'] = df_filtered_display['Volume 24h'].apply(format_large_number)
+if 'Ratio V/Nbr' in df_filtered_display.columns:
+    df_filtered_display['Ratio V/Nbr'] = df_filtered_display['Ratio V/Nbr'].apply(format_large_number)
 
 # Fonction de coloration par thème
 def color_theme(val):
@@ -161,16 +187,37 @@ with col1:
 
 with col2:
     st.subheader("Graphique Volume 24h par catégorie")
+    
+    # Créer une copie pour le graphique avec les valeurs numériques originales
+    df_graph = df_filtered.copy()
+    
     fig = px.bar(
-        df_filtered, x='Catégorie', y='Volume 24h',
+        df_graph, x='Catégorie', y='Volume 24h',
         color='Thème', color_discrete_map=color_map,
         hover_data=['Nombre de monnaies', 'Ratio V/Nbr'],
         height=600
     )
+    
+    # Formater les valeurs dans le hover
+    fig.update_traces(
+        hovertemplate='<br>'.join([
+            'Catégorie: %{x}',
+            'Volume 24h: %{y:,.0f}',
+            'Nombre de monnaies: %{customdata[0]}',
+            'Ratio V/Nbr: %{customdata[1]:.2f}',
+            '<extra></extra>'
+        ])
+    )
+    
     fig.update_layout(
         plot_bgcolor='#1E1E1E',
         paper_bgcolor='#1E1E1E',
         font_color='white',
-        xaxis_tickangle=-45
+        xaxis_tickangle=-45,
+        yaxis_title='Volume 24h'
     )
+    
+    # Formater l'axe Y avec des suffixes
+    fig.update_yaxes(tickformat=".0s")
+    
     st.plotly_chart(fig, use_container_width=True)
