@@ -66,12 +66,16 @@ color_map = {
 
 # --- Config Streamlit ---
 st.set_page_config(page_title="TVL Chains Dashboard", layout="wide")
+
+# --- Fond sombre mais tableaux lisibles ---
 st.markdown(
     """
     <style>
+    /* Fond général sombre */
     .main {background-color: #1E1E1E; color: #FFFFFF;}
     .stMarkdown p {color: #FFFFFF;}
-    .stDataFrame div{background-color: #1E1E1E;}
+    /* Laisser les tableaux lisibles */
+    .stDataFrame div{background-color: inherit !important;}
     </style>
     """, unsafe_allow_html=True
 )
