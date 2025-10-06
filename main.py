@@ -66,14 +66,12 @@ color_map = {
 
 # --- Config Streamlit ---
 st.set_page_config(page_title="TVL Chains Dashboard", layout="wide")
-
-# --- Fond sombre ---
 st.markdown(
     """
     <style>
     .main {background-color: #1E1E1E; color: #FFFFFF;}
     .stMarkdown p {color: #FFFFFF;}
-    .stDataFrame div{background-color: inherit !important;}
+    .stDataFrame div{background-color: #1E1E1E;}
     </style>
     """, unsafe_allow_html=True
 )
@@ -103,44 +101,15 @@ with col_kpi2:
     num_categories = len(df_filtered)
     st.metric("Nombre de catégories affichées", num_categories)
 
-# --- Préparer les données pour le style ---
-df_filtered_display = df_filtered.copy()
-
-# Colonnes numériques : supprimer les 0 inutiles
-num_cols = ['Volume 24h', 'Nombre de monnaies', 'Ratio V/Nbr']
-for col in num_cols:
-    if col in df_filtered_display.columns:
-        df_filtered_display[col] = df_filtered_display[col].fillna(0).apply(
-            lambda x: int(x) if float(x).is_integer() else round(x, 2)
-        )
-
-# --- Style par thème ---
-def color_theme(val):
-    return f"background-color: {color_map.get(val, '#333333')}; color: white;"
-
-# --- Style pour colonne évolution ---
-def color_evolution(val):
-    try:
-        val = float(val)
-        if val > 0:
-            return 'background-color: #00FF00; color: black;'
-        elif val < 0:
-            return 'background-color: #FF0000; color: white;'
-        else:
-            return 'background-color: #D3D3D3; color: black;'
-    except:
-        return ''
-
-# --- Layout tableau + graphique ---
+# --- Layout : tableau + graphique ---
 col1, col2 = st.columns([1, 2])
 
 with col1:
     st.subheader("Tableau des catégories")
-    st.dataframe(
-        df_filtered_display.style
-        .applymap(color_theme, subset=['Thème'])
-        .applymap(color_evolution, subset=['Évolution'])
-    )
+    # Coloration des cellules selon le thème
+    def color_theme(val):
+        return f"background-color: {color_map.get(val, '#333333')}; color: white;"
+    st.dataframe(df_filtered.style.applymap(color_theme, subset=['Thème']))
 
 with col2:
     st.subheader("Graphique Volume 24h par catégorie")
