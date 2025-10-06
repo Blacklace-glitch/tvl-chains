@@ -94,7 +94,12 @@ df = load_data()
 # --- Filtrer par thème ---
 themes = df['Thème'].dropna().unique()
 selected_theme = st.multiselect("Filtrer par thème :", themes, default=themes)
-df_filtered = df[df['Thème'].isin(selected_theme)]
+
+# CORRECTION : Si aucun thème sélectionné, afficher tout
+if len(selected_theme) == 0:
+    df_filtered = df
+else:
+    df_filtered = df[df['Thème'].isin(selected_theme)]
 
 # --- KPIs ---
 col_kpi1, col_kpi2 = st.columns(2)
