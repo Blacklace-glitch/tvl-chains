@@ -74,8 +74,54 @@ st.markdown(
     /* Fond général sombre */
     .main {background-color: #1E1E1E; color: #FFFFFF;}
     .stMarkdown p {color: #FFFFFF;}
-    /* Laisser les tableaux lisibles */
-    .stDataFrame div{background-color: inherit !important;}
+    
+    /* Style amélioré pour les tableaux */
+    .stDataFrame {
+        font-size: 14px;
+    }
+    
+    /* En-têtes du tableau en gras, centrés avec plus d'espace */
+    .stDataFrame thead th {
+        font-weight: bold !important;
+        text-align: center !important;
+        background-color: #2D2D2D !important;
+        color: white !important;
+        padding: 12px 8px !important;
+        font-size: 14px !important;
+        border: 1px solid #555 !important;
+    }
+    
+    /* Cellules du tableau avec plus d'espace */
+    .stDataFrame tbody td {
+        padding: 10px 8px !important;
+        border: 1px solid #555 !important;
+        font-size: 13px !important;
+    }
+    
+    /* Conteneur du tableau */
+    .stDataFrame div[data-testid="stDataFrameResizable"] {
+        border: 1px solid #555 !important;
+        border-radius: 5px !important;
+    }
+    
+    /* KPIs avec meilleur style */
+    .stMetric {
+        background-color: #2D2D2D;
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #555;
+    }
+    
+    .stMetric label {
+        color: #FFFFFF !important;
+        font-weight: bold !important;
+    }
+    
+    .stMetric div {
+        color: #FFFFFF !important;
+        font-size: 24px !important;
+        font-weight: bold !important;
+    }
     </style>
     """, unsafe_allow_html=True
 )
@@ -159,18 +205,18 @@ if 'Ratio V/Nbr' in df_filtered_display.columns:
 
 # Fonction de coloration par thème
 def color_theme(val):
-    return f"background-color: {color_map.get(val, '#333333')}; color: white;"
+    return f"background-color: {color_map.get(val, '#333333')}; color: white; font-weight: bold;"
 
 # Fonction de coloration pour la colonne évolution
 def color_evolution(val):
     try:
         val = float(val)
         if val > 0:
-            return 'background-color: #00FF00; color: black;'   # vert
+            return 'background-color: #00FF00; color: black; font-weight: bold;'   # vert
         elif val < 0:
-            return 'background-color: #FF0000; color: white;'   # rouge
+            return 'background-color: #FF0000; color: white; font-weight: bold;'   # rouge
         else:
-            return 'background-color: #D3D3D3; color: black;'   # gris
+            return 'background-color: #D3D3D3; color: black; font-weight: bold;'   # gris
     except:
         return ''  # si vide ou non numérique
 
@@ -179,10 +225,12 @@ col1, col2 = st.columns([1, 2])
 
 with col1:
     st.subheader("Tableau des catégories")
+    # Ajuster la hauteur du tableau pour plus d'espace
     st.dataframe(
         df_filtered_display.style
         .applymap(color_theme, subset=['Thème'])
-        .applymap(color_evolution, subset=['Évolution'])
+        .applymap(color_evolution, subset=['Évolution']),
+        height=600  # Hauteur augmentée pour plus d'espace
     )
 
 with col2:
@@ -214,7 +262,11 @@ with col2:
         paper_bgcolor='#1E1E1E',
         font_color='white',
         xaxis_tickangle=-45,
-        yaxis_title='Volume 24h'
+        yaxis_title='Volume 24h',
+        # Style amélioré pour le titre et les axes
+        title_font_size=16,
+        xaxis_title_font_size=14,
+        yaxis_title_font_size=14,
     )
     
     # Formater l'axe Y avec des suffixes
