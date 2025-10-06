@@ -113,10 +113,23 @@ with col_kpi2:
 # --- Préparer les données pour le style ---
 df_filtered_display = df_filtered.copy()
 
-# Colonnes numériques sans décimales
-for col in ['Volume 24h', 'Nombre de monnaies', 'Ratio V/Nbr']:
+# Nettoyage des colonnes numériques - suppression des zéros inutiles
+def clean_numeric_value(val):
+    """Nettoie les valeurs numériques en supprimant les zéros inutiles"""
+    try:
+        # Si c'est un entier, on le convertit en int
+        if float(val) == int(float(val)):
+            return int(val)
+        # Sinon on garde 2 décimales maximum
+        else:
+            return round(float(val), 2)
+    except (ValueError, TypeError):
+        return val
+
+# Appliquer le nettoyage aux colonnes numériques
+for col in ['Volume 24h', 'Nombre de monnaies', 'Ratio V/Nbr', 'Classement', 'Évolution']:
     if col in df_filtered_display.columns:
-        df_filtered_display[col] = df_filtered_display[col].fillna(0).astype(int)
+        df_filtered_display[col] = df_filtered_display[col].apply(clean_numeric_value)
 
 # Fonction de coloration par thème
 def color_theme(val):
