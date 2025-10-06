@@ -67,14 +67,12 @@ color_map = {
 # --- Config Streamlit ---
 st.set_page_config(page_title="TVL Chains Dashboard", layout="wide")
 
-# --- Fond sombre mais tableaux lisibles ---
+# --- Fond sombre ---
 st.markdown(
     """
     <style>
-    /* Fond général sombre */
     .main {background-color: #1E1E1E; color: #FFFFFF;}
     .stMarkdown p {color: #FFFFFF;}
-    /* Laisser les tableaux lisibles */
     .stDataFrame div{background-color: inherit !important;}
     </style>
     """, unsafe_allow_html=True
@@ -108,29 +106,32 @@ with col_kpi2:
 # --- Préparer les données pour le style ---
 df_filtered_display = df_filtered.copy()
 
-# Colonnes numériques sans décimales
-for col in ['Volume 24h', 'Nombre de monnaies', 'Ratio V/Nbr']:
+# Colonnes numériques : supprimer les 0 inutiles
+num_cols = ['Volume 24h', 'Nombre de monnaies', 'Ratio V/Nbr']
+for col in num_cols:
     if col in df_filtered_display.columns:
-        df_filtered_display[col] = df_filtered_display[col].fillna(0).astype(int)
+        df_filtered_display[col] = df_filtered_display[col].fillna(0).apply(
+            lambda x: int(x) if float(x).is_integer() else round(x, 2)
+        )
 
-# Fonction de coloration par thème
+# --- Style par thème ---
 def color_theme(val):
     return f"background-color: {color_map.get(val, '#333333')}; color: white;"
 
-# Fonction de coloration pour la colonne évolution
+# --- Style pour colonne évolution ---
 def color_evolution(val):
     try:
         val = float(val)
         if val > 0:
-            return 'background-color: #00FF00; color: black;'   # vert
+            return 'background-color: #00FF00; color: black;'
         elif val < 0:
-            return 'background-color: #FF0000; color: white;'   # rouge
+            return 'background-color: #FF0000; color: white;'
         else:
-            return 'background-color: #D3D3D3; color: black;'   # gris
+            return 'background-color: #D3D3D3; color: black;'
     except:
-        return ''  # si vide ou non numérique
+        return ''
 
-# --- Layout : tableau + graphique ---
+# --- Layout tableau + graphique ---
 col1, col2 = st.columns([1, 2])
 
 with col1:
