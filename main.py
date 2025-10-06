@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from urllib.parse import urlparse
 
 # --- Couleurs par thème ---
 color_map = {
@@ -87,11 +88,54 @@ st.markdown(
 st.title("📊 TVL Chains Dashboard")
 st.markdown("Visualisation des catégories de crypto avec fond sombre et couleurs par thème.")
 
-# --- Charger les données ---
+# --- Charger les données avec conservation des liens ---
 @st.cache_data
 def load_data():
     CSV_URL = "https://docs.google.com/spreadsheets/d/1RLRjn6uya9zApbGMLBWmTPn2YL8T-_-FJTLiQD2GPwU/export?format=csv&gid=1167946643"
-    return pd.read_csv(CSV_URL)
+    
+    # Charger avec pandas
+    df = pd.read_csv(CSV_URL)
+    
+    # Vérifier si la colonne Catégorie contient des liens HTML
+    # Si c'est le cas, les extraire et créer une colonne séparée pour les URLs
+    if 'Catégorie' in df.columns:
+        # Fonction pour extraire le texte du lien si c'est un lien HTML
+        def extract_link_text(cell):
+            if pd.isna(cell):
+                return cell
+            cell_str = str(cell)
+            if '<a href=' in cell_str:
+                # Extraire le texte entre les balises
+                import re
+                match = re.search(r'<a[^>]*>(.*?)</a>', cell_str)
+                if match:
+                    return match.group(1)
+            return cell_str
+        
+        # Fonction pour extraire l'URL si c'est un lien HTML
+        def extract_link_url(cell):
+            if pd.isna(cell):
+                return cell
+            cell_str = str(cell)
+            if '<a href=' in cell_str:
+                # Extraire l'URL
+                import re
+                match = re.search(r'href="([^"]*)"', cell_str)
+                if match:
+                    return match.group(1)
+            return None
+        
+        # Appliquer les fonctions d'extraction
+        df['Catégorie_Text'] = df['Catégorie'].apply(extract_link_text)
+        df['Catégorie_URL'] = df['Catégorie'].apply(extract_link_url)
+        
+        # Remplacer la colonne Catégorie par le texte extrait
+        df['Catégorie'] = df['Catégorie_Text']
+        
+        # Supprimer les colonnes temporaires
+        df.drop(['Catégorie_Text', 'Catégorie_URL'], axis=1, inplace=True, errors='ignore')
+    
+    return df
 
 df = load_data()
 
